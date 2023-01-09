@@ -488,6 +488,22 @@ impl Pos {
             Relation::Opponent => 0.0,
         }
     }
+
+    fn tree_end_impl(&self, depth: usize, vec: &mut Vec<Pos>) {
+        if depth == 0 {
+            vec.push(*self);
+        } else {
+            for mv in self.valid_moves() {
+                self.play_clone(mv).tree_end_impl(depth - 1, vec);
+            }
+        }
+    }
+
+    pub fn tree_end(&self, depth: usize) -> Vec<Pos> {
+        let mut ret = Vec::new();
+        self.tree_end_impl(depth, &mut ret);
+        ret
+    }
 }
 
 impl Default for Pos {
