@@ -2,7 +2,7 @@ use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use std::cmp::Ordering;
 use std::fmt::{self, Display};
-use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign};
 
 // this has become a representation both for players and tiles
 // possibly rename to `Party` in the future
@@ -156,6 +156,44 @@ impl SubAssign<Vec2> for Vec2 {
     fn sub_assign(&mut self, rhs: Vec2) {
         self.x -= rhs.x;
         self.y -= rhs.y;
+    }
+}
+
+impl Mul<isize> for Vec2 {
+    type Output = Vec2;
+
+    fn mul(self, rhs: isize) -> Self::Output {
+        Vec2::new(self.x * rhs, self.y * rhs)
+    }
+}
+
+impl Mul<Vec2> for isize {
+    type Output = Vec2;
+
+    fn mul(self, rhs: Vec2) -> Self::Output {
+        rhs * self
+    }
+}
+
+impl MulAssign<isize> for Vec2 {
+    fn mul_assign(&mut self, rhs: isize) {
+        self.x *= rhs;
+        self.y *= rhs;
+    }
+}
+
+impl Div<isize> for Vec2 {
+    type Output = Vec2;
+
+    fn div(self, rhs: isize) -> Self::Output {
+        Vec2::new(self.x / rhs, self.y / rhs)
+    }
+}
+
+impl DivAssign<isize> for Vec2 {
+    fn div_assign(&mut self, rhs: isize) {
+        self.x /= rhs;
+        self.y /= rhs;
     }
 }
 
@@ -692,5 +730,22 @@ mod tests {
         );
 
         assert_eq!(pos_count(pos, 7), 15562);
+    }
+
+    #[test]
+    fn vec_mul_div() {
+        let mut v = Vec2::new(3, 4);
+
+        assert_eq!(Vec2::new(6, 8), v * 2);
+        assert_eq!(Vec2::new(6, 8), 2 * v);
+
+        v *= 2;
+
+        assert_eq!(Vec2::new(6, 8), v);
+        assert_eq!(Vec2::new(3, 4), v / 2);
+
+        v /= 2;
+
+        assert_eq!(Vec2::new(3, 4), v);
     }
 }
