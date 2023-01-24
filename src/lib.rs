@@ -127,6 +127,20 @@ impl Vec2 {
     pub fn move_string(&self) -> String {
         String::from_utf8(vec![(b'a' + self.x as u8), b'1' + self.y as u8]).expect("unreachable")
     }
+
+    pub fn rotate_90k(&mut self, k: isize) {
+        *self = self.rotated_90k(k);
+    }
+
+    pub fn rotated_90k(&self, k: isize) -> Vec2 {
+        match k.rem_euclid(4) {
+            0 => *self,
+            1 => Vec2::new(-self.y, self.x),
+            2 => Vec2::new(-self.x, -self.y),
+            3 => Vec2::new(self.y, -self.x),
+            _ => unreachable!(),
+        }
+    }
 }
 
 impl Add<Vec2> for Vec2 {
