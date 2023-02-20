@@ -2,7 +2,7 @@ use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use std::cmp::Ordering;
 use std::fmt::{self, Display};
-use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign};
 
 // this has become a representation both for players and tiles
 // possibly rename to `Party` in the future
@@ -127,6 +127,20 @@ impl Vec2 {
     pub fn move_string(&self) -> String {
         String::from_utf8(vec![(b'a' + self.x as u8), b'1' + self.y as u8]).expect("unreachable")
     }
+
+    pub fn rotate_90k(&mut self, k: isize) {
+        *self = self.rotated_90k(k);
+    }
+
+    pub fn rotated_90k(&self, k: isize) -> Vec2 {
+        match k.rem_euclid(4) {
+            0 => *self,
+            1 => Vec2::new(-self.y, self.x),
+            2 => Vec2::new(-self.x, -self.y),
+            3 => Vec2::new(self.y, -self.x),
+            _ => unreachable!(),
+        }
+    }
 }
 
 impl Add<Vec2> for Vec2 {
@@ -156,6 +170,44 @@ impl SubAssign<Vec2> for Vec2 {
     fn sub_assign(&mut self, rhs: Vec2) {
         self.x -= rhs.x;
         self.y -= rhs.y;
+    }
+}
+
+impl Mul<isize> for Vec2 {
+    type Output = Vec2;
+
+    fn mul(self, rhs: isize) -> Self::Output {
+        Vec2::new(self.x * rhs, self.y * rhs)
+    }
+}
+
+impl Mul<Vec2> for isize {
+    type Output = Vec2;
+
+    fn mul(self, rhs: Vec2) -> Self::Output {
+        rhs * self
+    }
+}
+
+impl MulAssign<isize> for Vec2 {
+    fn mul_assign(&mut self, rhs: isize) {
+        self.x *= rhs;
+        self.y *= rhs;
+    }
+}
+
+impl Div<isize> for Vec2 {
+    type Output = Vec2;
+
+    fn div(self, rhs: isize) -> Self::Output {
+        Vec2::new(self.x / rhs, self.y / rhs)
+    }
+}
+
+impl DivAssign<isize> for Vec2 {
+    fn div_assign(&mut self, rhs: isize) {
+        self.x /= rhs;
+        self.y /= rhs;
     }
 }
 
@@ -480,6 +532,22 @@ impl Pos {
             Relation::Opponent => 0.0,
         }
     }
+
+    fn tree_end_impl(&self, depth: usize, vec: &mut Vec<Pos>) {
+        if depth == 0 {
+            vec.push(*self);
+        } else {
+            for mv in self.valid_moves() {
+                self.play_clone(mv).tree_end_impl(depth - 1, vec);
+            }
+        }
+    }
+
+    pub fn tree_end(&self, depth: usize) -> Vec<Pos> {
+        let mut ret = Vec::new();
+        self.tree_end_impl(depth, &mut ret);
+        ret
+    }
 }
 
 impl Default for Pos {
@@ -688,5 +756,22 @@ mod tests {
         );
 
         assert_eq!(pos_count(pos, 7), 15562);
+    }
+
+    #[test]
+    fn vec_mul_div() {
+        let mut v = Vec2::new(3, 4);
+
+        assert_eq!(Vec2::new(6, 8), v * 2);
+        assert_eq!(Vec2::new(6, 8), 2 * v);
+
+        v *= 2;
+
+        assert_eq!(Vec2::new(6, 8), v);
+        assert_eq!(Vec2::new(3, 4), v / 2);
+
+        v /= 2;
+
+        assert_eq!(Vec2::new(3, 4), v);
     }
 }
