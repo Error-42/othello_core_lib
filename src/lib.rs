@@ -241,15 +241,7 @@ impl Display for Board {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for y in 0..8 {
             for x in 0..8 {
-                write!(
-                    f,
-                    "{}",
-                    match self.get(Vec2::new(x, y)) {
-                        Tile::X => 'X',
-                        Tile::O => 'O',
-                        Tile::Empty => '.',
-                    }
-                )?;
+                write!(f, "{}", self.get(Vec2::new(x, y)))?;
             }
             writeln!(f)?;
         }
@@ -511,6 +503,26 @@ mod tests {
         b.next_player = Tile::O;
 
         assert_eq!(a, b);
+    }
+
+    #[test]
+    fn board_display() {
+        let mut board = Board::new();
+        board.set(Vec2::new(0, 1), Tile::X);
+
+        assert_eq!(
+            format!("{}", board),
+            "\
+            ........\n\
+            X.......\n\
+            ........\n\
+            ...OX...\n\
+            ...XO...\n\
+            ........\n\
+            ........\n\
+            ........\n\
+            "
+        );
     }
 
     fn pos_count(pos: Pos, depth: usize) -> usize {
